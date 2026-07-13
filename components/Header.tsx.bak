@@ -1,0 +1,27 @@
+import Link from "next/link";
+
+export function Header() {
+  return (
+    <header className="border-b border-neutral-100 bg-white sticky top-0 z-50">
+      <div className="container max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5 font-bold text-neutral-900">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="PPDDFF Logo" className="w-8 h-8 object-contain rounded-md" />
+          <span className="tracking-tight text-lg font-black text-[#1e293b]">PPDDFF</span>
+        </Link>
+
+        <nav className="flex items-center gap-6 text-sm text-neutral-500 font-medium">
+          <Link href="/about" className="hover:text-neutral-950 transition-colors">
+            About
+          </Link>
+          <Link href="/privacy" className="hover:text-neutral-950 transition-colors">
+            Privacy
+          </Link>
+          <Link href="/terms" className="hover:text-neutral-950 transition-colors">
+            Terms
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+}

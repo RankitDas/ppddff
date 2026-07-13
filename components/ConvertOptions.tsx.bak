@@ -1,0 +1,137 @@
+"use client";
+
+import { useState } from "react";
+import { File, ArrowRight, FileText } from "lucide-react";
+import { targetsFor } from "@/lib/format";
+
+interface ConvertOptionsProps {
+  files: File[];
+  onConvert: (to: string) => void;
+  onCancel: () => void;
+  isMulti?: boolean;
+}
+
+// Disable formats that require LibreOffice in this environment
+const DISABLED_FORMATS = new Set([
+  "doc", "ppt", "pptx", "rtf", "epub", "odt", "ods", "odp"
+]);
+
+export function ConvertOptions({
+  files,
+  onConvert,
+  onCancel,
+  isMulti = false,
+}: ConvertOptionsProps) {
+  const isMerge = isMulti && files.length >= 2;
+  const firstFile = files[0];
+  const ext = firstFile?.name.split(".").pop()?.toLowerCase() || "";
+  
+  // Filter compatible targets to exclude disabled formats
+  const targets = targetsFor(ext).filter((t) => !DISABLED_FORMATS.has(t.to));
+  
+  const [selectedTarget, setSelectedTarget] = useState(targets[0]?.to || "");
+
+  const formatSize = (bytes: number) => {
+    const sizeStr = (bytes / 1024).toFixed(1) + " KB";
+    const sizeMb = (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    return bytes > 1024 * 1024 ? sizeMb : sizeStr;
+  };
+
+  const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+
+  return (
+    <div className="w-full bg-white border border-neutral-100 rounded-xl p-6 shadow-sm">
+      {isMerge ? (
+        <div className="mb-6">
+          <h4 className="font-semibold text-neutral-400 text-xs uppercase tracking-wider mb-3">
+            Files to Merge ({files.length})
+          </h4>
+          <div className="max-h-40 overflow-y-auto space-y-2 border border-neutral-100 rounded-lg p-3 bg-neutral-50/50">
+            {files.map((file, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-xs text-neutral-700">
+                <FileText className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                <span className="truncate flex-1 font-medium">{file.name}</span>
+                <span className="text-[10px] text-neutral-400 font-mono shrink-0">
+                  {formatSize(file.size)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-neutral-400 mt-2">
+            Total Size: <span className="font-mono font-medium">{formatSize(totalSize)}</span>
+          </p>
+        </div>
+      ) : (
+        firstFile && (
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 bg-neutral-50 rounded-lg flex items-center justify-center text-neutral-500 border border-neutral-100 shrink-0">
+              <File className="w-6 h-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h4 className="font-semibold text-neutral-900 text-sm truncate mb-0.5" title={firstFile.name}>
+                {firstFile.name}
+              </h4>
+              <p className="text-xs text-neutral-500">
+                {formatSize(firstFile.size)} • <span className="uppercase font-mono">{ext}</span> File
+              </p>
+            </div>
+          </div>
+        )
+      )}
+
+      {isMerge ? (
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Operation
+              <div className="w-full bg-neutral-50 border border-neutral-100 rounded-lg px-3 py-2 text-sm text-neutral-800 font-medium mt-1">
+                Merge PDFs into a single file (.pdf)
+              </div>
+            </label>
+          </div>
+        </div>
+      ) : targets.length === 0 ? (
+        <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg text-xs text-amber-700 mb-6">
+          No conversions are available for this file type in this environment.
+        </div>
+      ) : (
+        <div className="space-y-4 mb-6">
+          <div>
+            <label htmlFor="target-format" className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Convert To
+            </label>
+            <select
+              id="target-format"
+              value={selectedTarget}
+              onChange={(e) => setSelectedTarget(e.target.value)}
+              className="w-full bg-white border border-neutral-200 hover:border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-900 transition-colors cursor-pointer"
+            >
+              {targets.map((t) => (
+                <option key={t.to} value={t.to}>
+                  {t.label} (.{t.to})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onCancel}
+          className="flex-1 border border-neutral-200 hover:bg-neutral-50 text-neutral-700 font-medium text-xs py-2.5 rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => onConvert(isMerge ? "merge" : selectedTarget)}
+          disabled={!isMerge && !selectedTarget}
+          className="flex-1 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-100 disabled:text-neutral-400 text-white font-medium text-xs py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5"
+        >
+          <span>{isMerge ? "Merge PDFs" : "Convert"}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}

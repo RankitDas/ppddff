@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import { getBrowser } from "@/lib/browser";
 import type { ConversionResult } from "@/types";
 import { MIME_BY_EXT } from "@/lib/format";
 import type { ConvertInput } from "./index";
@@ -13,10 +13,7 @@ export async function convertHtml(
 ): Promise<ConversionResult> {
   const { to, data } = input;
   
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  const browser = await getBrowser();
 
   try {
     const page = await browser.newPage();

@@ -1,5 +1,5 @@
 import mammoth from "mammoth";
-import puppeteer from "puppeteer";
+import { getBrowser } from "@/lib/browser";
 import type { ConversionResult } from "@/types";
 import { MIME_BY_EXT } from "@/lib/format";
 import type { ConvertInput } from "./index";
@@ -24,10 +24,7 @@ export async function convertWord(
   if (to === "pdf") {
     const { value: html } = await mammoth.convertToHtml({ buffer: data });
     
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
+    const browser = await getBrowser();
     
     try {
       const page = await browser.newPage();
